@@ -65,11 +65,19 @@ class SystemConfig:
         # Network info
         hostname = socket.gethostname()
         ip_address = socket.gethostbyname(hostname)
+        # Get list of open ports
+        open_ports = []
+        for conn in psutil.net_connections(kind='inet'):
+            if conn.status == psutil.CONN_ESTABLISHED:
+                open_ports.append(conn.laddr.port)
+
+
         network_info = {
             "Hostname": hostname,
             "IP Address": ip_address,
             "Network Interfaces": {interface_name: {str(address.family): {"IP Address": address.address, "Netmask": address.netmask, "Broadcast IP": address.broadcast}} for interface_name, interface_addresses in psutil.net_if_addrs().items() for address in interface_addresses}
         }
+        network_info["Open Ports"] = open_ports
 
         # Run df -h command and capture output
         try:
